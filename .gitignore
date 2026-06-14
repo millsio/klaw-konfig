@@ -1,0 +1,7 @@
+# Deny everything by default
+*
+
+# Allowlist only tracked files
+!.gitignore
+!scripts/
+!scripts/mirror_openclaw_docs.py
