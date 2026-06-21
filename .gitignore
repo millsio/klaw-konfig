@@ -5,3 +5,6 @@
 !.gitignore
 !scripts/
 !scripts/mirror_openclaw_docs.py
+!scripts/nightly.sh
+!AGENTS.md
+!CLAUDE.md
