@@ -6,5 +6,15 @@
 !scripts/
 !scripts/mirror_openclaw_docs.py
 !scripts/nightly.sh
+!scripts/mem_backup.py
+!scripts/debate.py
+!scripts/debate_watcher.py
+!scripts/judge.py
+!scripts/mem_edit.py
+!scripts/hotdog.sh
 !AGENTS.md
 !CLAUDE.md
+!hooks/
+!hooks/hotdog/
+!hooks/hotdog/HOOK.md
+!hooks/hotdog/handler.js
