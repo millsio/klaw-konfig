@@ -6,7 +6,6 @@
 !scripts/
 !scripts/mirror_openclaw_docs.py
 !scripts/nightly.sh
-!scripts/mem_backup.py
 !scripts/debate.py
 !scripts/debate_watcher.py
 !scripts/judge.py
