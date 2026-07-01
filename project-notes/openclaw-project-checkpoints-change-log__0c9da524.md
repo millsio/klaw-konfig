@@ -14,7 +14,7 @@ Active.
 
 ## Last Updated
 
-2026-06-28
+2026-07-01
 
 ## Key Decisions
 
@@ -137,6 +137,11 @@ Canonical, authoritative list of all Hyper-V checkpoints (VM snapshots) for klaw
 
 - Date: 2026-06-30, \~1:25:53 AM
 - Captures: mid-build of the multi-agent "council" autonomy pilot plus a security-hardening pass. At this checkpoint: the Mem API key was rotated and migrated to a SecretRef (`${MEM_API_KEY}` in `~/.openclaw/.env`; plaintext purged from `openclaw.json` and all config backups), `gateway.controlUi.allowInsecureAuth` was disabled, the agents' filesystem `read` tool is deliberately OFF, and `scripts/council_pilot.py` is built — two local models (qwen `main`/pacifico, gemma `gemma-amethyst`/amethyst) review the OPENCLAW PROJECT collection via their own read-only Mem tools and collaborate with periodic headless tool-less `claude -p` weigh-ins, with a runtime secret-scan guard redacting secrets from all output. Pilot validated by two smoke tests but not yet run end-to-end. Captured by Brian.
+
+**"klaw-machine - (7/1/2026 - 5:13:08 PM) - mid openclaw docs digest - mem to local"**
+
+- Date: 2026-07-01, ~5:13:08 PM ET
+- Captures: state mid docs-digest build, immediately after the **Mem→local project-memory migration**. At this checkpoint: (1) the OPENCLAW PROJECT collection was migrated OFF Mem to local markdown at `~/.openclaw/project-notes/` (13 notes + 2 PII-scrubbed AI-trading notes), git-tracked and pushed to the private `klaw-konfig` remote (full version history going forward); (2) agents fully severed from Mem — `bundle-mcp` removed from `tools.allow` and the `mcp.servers.mem` block removed from `openclaw.json` (gateway restarted); (3) `council_pilot.py` repointed to write its discussion log locally (`council/discussion-log.md`); (4) `mem_backup.py` + its weekly cron + `mem-backups/` retired, `migrate_mem_to_local.py` / `bring_ai_trading.py` removed; `council_pilot.py` / `docs_digest.py` / `digest_chunk.sh` added to git. (5) The whole-corpus **docs digest** (`docs_digest.py`; map = `claude-sonnet-5`, reduce = `claude-opus-4-8`) is being built chunked across 5-hour usage windows via `digest_chunk.sh` — ~19/57 map batches cached, remainder on cron (7 PM + overnight). A Fable 5 whole-system eval is planned for after the digest lands (Fable 5 promo through Jul 7). Captured by Brian.
 
 ***
 
