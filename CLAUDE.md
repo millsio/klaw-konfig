@@ -2,7 +2,7 @@
 
 ## Sources of truth
 - Operational conventions and project rules: follow `AGENTS.md` in this directory.
-- Cross-tool project memory: the Mem collection "OPENCLAW PROJECT" (id `82bba4f9-6724-4874-bbcf-1f9ab525b873`). Read it at session start; record milestones/decisions there.
+- Project memory: local files in `~/.openclaw/project-notes/` (`INDEX.md` is the map). Read at session start; record milestones/decisions there. Migrated off Mem 2026-07-01; `mem_backup.py` keeps a Mem snapshot until cutover completes.
 - OpenClaw docs: local mirror at `~/.openclaw/docs/` (`INDEX.md` is the map) — prefer it over web search for OpenClaw questions.
 
 ## Hard rules

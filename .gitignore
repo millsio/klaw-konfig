@@ -18,3 +18,8 @@
 !hooks/hotdog/
 !hooks/hotdog/HOOK.md
 !hooks/hotdog/handler.js
+# Project notes migrated off Mem (markdown only; non-.md drops stay denied by default)
+!project-notes/
+!project-notes/*.md
+!project-notes/ai-trading/
+!project-notes/ai-trading/*.md
