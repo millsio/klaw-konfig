@@ -11,6 +11,9 @@
 !scripts/judge.py
 !scripts/mem_edit.py
 !scripts/hotdog.sh
+!scripts/council_pilot.py
+!scripts/docs_digest.py
+!scripts/digest_chunk.sh
 !AGENTS.md
 !CLAUDE.md
 !hooks/
