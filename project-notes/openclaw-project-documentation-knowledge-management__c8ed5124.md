@@ -10,11 +10,11 @@ source: mem:OPENCLAW PROJECT
 
 ## Current Status
 
-Active. Governance model complete. Documentation mirror DEPLOYED and operational (ETag-based incremental). The previously-pending close-out items (private GitHub remote, committed mirror script + nightly wrapper, daily system-crontab cron, both agents pointed at the mirror) were all done 2026-06-20. **As of 2026-06-21 the docs-mirror track is FULLY CLOSED:** the 3:15 AM cron is confirmed firing unattended, and the ETag conditional caching is verified working (back-to-back run → 687 unchanged). Closed ≠ unmonitored — see "Mirror — Ongoing Monitoring." Corpus \~689 discovered pages (was 684). **Next workstream on this note: the Documentation Digest (whole-corpus distillation), planned as a WEEKLY Claude-Code/Opus process — see that section below.**
+Active. **2026-07-01: project memory migrated OFF Mem to local git-tracked markdown at `~/.openclaw/project-notes/`; agents severed from Mem; Mem-specific sections below are retained as history and annotated where superseded. The initial whole-corpus docs digest is IN FLIGHT (chunked via `digest_chunk.sh`; see the Digest section + Roadmap).** Governance model complete. Documentation mirror DEPLOYED and operational (ETag-based incremental). The previously-pending close-out items (private GitHub remote, committed mirror script + nightly wrapper, daily system-crontab cron, both agents pointed at the mirror) were all done 2026-06-20. **As of 2026-06-21 the docs-mirror track is FULLY CLOSED:** the 3:15 AM cron is confirmed firing unattended, and the ETag conditional caching is verified working (back-to-back run → 687 unchanged). Closed ≠ unmonitored — see "Mirror — Ongoing Monitoring." Corpus \~689 discovered pages (was 684). **Next workstream on this note: the Documentation Digest (whole-corpus distillation), planned as a WEEKLY Claude-Code/Opus process — see that section below.**
 
 ## Last Updated
 
-2026-06-27
+2026-07-01
 
 ## Key Decisions
 
@@ -66,7 +66,9 @@ MASTER
 └─ Archives (future)
 ```
 
-### Two Layers: native OpenClaw memory vs Mem (decided 2026-06-21)
+### Two Layers: native OpenClaw memory vs the curated KB (decided 2026-06-21; layer 2 re-homed 2026-07-01)
+
+**UPDATE 2026-07-01: layer 2 (the curated cross-tool KB) moved from Mem to local git-tracked markdown at `~/.openclaw/project-notes/`.** The two-layer MODEL stands — operational agent memory vs curated project KB remain distinct jobs — but the KB's Mem-specific properties changed: cross-tool access is now "anything that can read the filesystem" (Claude Code natively; local agents once the fs-read grant lands; claude.ai chat NO LONGER has direct access — it lost read/write when Mem was severed); versioning is now git (better than Mem's); semantic search is gone (grep/structure instead); "survives VM rebuild" is now covered by the GitHub push, not cloud hosting. The scoping problem intrinsic to Mem's shared store is eliminated. Original reasoning below retained as history:
 
 Two distinct memory systems with different jobs — keep them straight:
 
@@ -301,16 +303,20 @@ Goal: periodically distill the mirror into a **dense but detail-rich** version o
 
 ```
 Question
-→ Search OPENCLAW PROJECT notes in Mem
+→ Read OPENCLAW PROJECT notes at ~/.openclaw/project-notes/ (INDEX.md → MASTER → subject notes)
 → Search OpenClaw documentation (docs command or local mirror; whole-corpus digest when it exists)
 → Check live system state when needed
 → Answer
 → Update project notes when appropriate
 ```
 
+_(Updated 2026-07-01: was "Search OPENCLAW PROJECT notes in Mem" pre-migration.)_
+
 ***
 
-## Memory Scope Requirement
+## Memory Scope Requirement — ✅ RESOLVED BY MIGRATION (2026-07-01)
+
+**The problem class was eliminated on 2026-07-01: agents were fully severed from Mem (no Mem tools, no token), so there is nothing left to scope.** The successor concern is scoping the planned filesystem-read grant for local agents (secrets locked down first — see the Pilot note and Roadmap). Original requirement and the Fix A/Fix B history retained below:
 
 OpenClaw must not search all Mem notes by default.
 
@@ -348,9 +354,9 @@ A brand-new empty workspace causes OpenClaw to seed `BOOTSTRAP.md` — a one-tim
 
 A standing anti-confabulation directive was added to `SOUL.md` for `main` and `gemma-telegram`. Honest caveat: a prompt directive reduces but does not eliminate confabulation on a Q4 local model — the durable lever is grounding (forced lookup + citation), not instruction alone.
 
-### Local Mem backup (NEW)
+### Local Mem backup — RETIRED 2026-07-01
 
-`scripts/mem_backup.py` (stdlib-only, tracked in git) pulls every note in the OPENCLAW PROJECT collection (full markdown) via the Mem REST API (`GET /v2/notes?collection_id=...&include_note_content=true`) and writes a timestamped snapshot to `~/.openclaw/mem-backups/YYYY-MM-DD/` (per-note `.md` + raw `manifest.json` + `INDEX.md`). Reads the Mem bearer token from `openclaw.json` at runtime (no secret in the script); scoped to the project collection only. Retention: keeps the last 10 snapshots. Weekly cron, Sundays 3:30 AM. A point-in-time safety net, not transactional — converts "lose everything" into "lose at most a week." Backup output is git-ignored.
+`scripts/mem_backup.py` (weekly cron, keep-last-10 snapshots to `~/.openclaw/mem-backups/`) was the point-in-time safety net for the Mem-hosted collection. Retired with the Mem→local cutover: the notes are now local files under git, pushed to the private remote — continuous version history, no snapshot script needed. Script, cron, and `mem-backups/` all removed 2026-07-01.
 
 ***
 
@@ -363,3 +369,4 @@ A standing anti-confabulation directive was added to `SOUL.md` for `main` and `g
 - 2026-06-21 (cont.): Mirror closed-but-monitored (added Ongoing Monitoring); Digest cadence WEEKLY; production = frontier Opus via Claude Code headless (with billing/ToS caveats), chunked production / single-pass analysis; added Digest Analysis companion artifact.
 - 2026-06-21 (cont. 2): Added the **two-layer memory model** decision + a "Two Layers" section — OpenClaw native memory (operational, local, fast, intrinsically scoped) vs Mem via MCP (curated, cross-tool, durable KB); using Mem for the curated KB is correct, not a disservice; open item is to confirm Klaw uses native memory for operational recall. Reframed the Memory Scope Requirement as an MCP-filtering task (Mem `filter_by_collection_ids`), intrinsic to Mem's shared-store nature.
 - 2026-06-27: Recorded a Claude Code session — agent bootstrap-ritual findings + Mem write-pollution cleanup; the honesty directive (main + Kettle SOUL.md); the per-agent Mem write-permission gate (Fix A, see Memory Scope Requirement update) with Fix B (token/MCP-proxy scoping) deferred to Roadmap; and a new local Mem backup system (`scripts/mem_backup.py`, weekly, keep-last-10). Added the "Agent Workspace Hygiene, Mem Write Governance & Local Backup" section.
+- 2026-07-01: **Post-migration reconciliation (Claude Code).** Annotated this note for the Mem→local cutover: curated-KB layer re-homed to `~/.openclaw/project-notes/` (two-layer model stands, layer-2 properties updated — git versioning, no semantic search, claude.ai chat loses direct access); Memory Scope Requirement marked RESOLVED BY MIGRATION (agents severed; successor concern = scoping the future fs-read grant); Desired Knowledge Workflow repointed at local notes; `mem_backup.py` marked retired. Digest status: initial whole-corpus build in flight (see Roadmap).

@@ -1,12 +1,14 @@
 ---
 mem_id: d5991cca-6922-4599-aec5-1b15f188e7a2
-title: "Deeper OpenClaw Sources (Beyond the YouTube Layer)"
+title: "OPENCLAW PROJECT — Reference: Deeper OpenClaw Sources (Beyond the YouTube Layer)"
 created_at: 2026-06-22T01:35:24.108Z
 updated_at: 2026-06-22T01:35:24.698Z
 source: mem:OPENCLAW PROJECT
 ---
 
-# Deeper OpenClaw Sources (Beyond the YouTube Layer)
+# OPENCLAW PROJECT — Reference: Deeper OpenClaw Sources (Beyond the YouTube Layer)
+
+_(Renamed 2026-07-01 to follow the collection naming convention; content unchanged.)_
 
 Video content on OpenClaw runs shallow because the surface area is huge and moving weekly, so creators optimize for "look, it works in 10 minutes." The real depth lives in source, docs, and the community — not video.
 

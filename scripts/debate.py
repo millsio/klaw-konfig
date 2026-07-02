@@ -44,12 +44,17 @@ def tg_send(text):
 def run_turn(agent, key, message, think, timeout=240):
     cmd = ["openclaw", "agent", "--agent", agent, "--session-key", key,
            "--message", message, "--thinking", think, "--json", "--timeout", str(timeout)]
-    p = subprocess.run(cmd, capture_output=True, text=True, cwd=OC)
+    # subprocess timeout backstops the CLI's own --timeout in case the process itself hangs
+    p = subprocess.run(cmd, capture_output=True, text=True, cwd=OC, timeout=timeout + 90)
     if p.returncode != 0 or not p.stdout.strip():
-        raise RuntimeError(f"turn failed ({agent}): {p.stderr[:300]}")
+        raise RuntimeError(f"turn failed ({agent}): rc={p.returncode} {p.stderr[:300]}")
     d = json.loads(p.stdout)
-    txt = " ".join(x.get("text", "") for x in d["result"]["payloads"]).strip()
-    sess = d["result"]["meta"]["agentMeta"].get("sessionFile")
+    res = d.get("result")
+    if not isinstance(res, dict) or "payloads" not in res:
+        # error envelope / timeout response without a result body — surface it verbatim
+        raise RuntimeError(f"turn failed ({agent}): no result in agent JSON: {p.stdout[:400]}")
+    txt = " ".join(x.get("text", "") for x in (res["payloads"] or [])).strip()
+    sess = ((res.get("meta") or {}).get("agentMeta") or {}).get("sessionFile")
     return txt, sess, d
 
 

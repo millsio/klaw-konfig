@@ -8,8 +8,10 @@ source: mem:OPENCLAW PROJECT
 
 WORKSTATION — Desk Consolidation & KVM Build
 
+_(SCOPE EXCEPTION, recorded 2026-07-01: general workstation planning is normally excluded from this collection, but this note is retained deliberately — the desk build directly involves the project hosts (amethyst/pacifico) and carries two project-relevant decisions: both GPU boxes drive displays from the iGPU so the dGPUs stay 100% compute, and trading lives on amethyst so OS-level churn stays off it during market hours. RETIREMENT PLAN: after the physical build is validated, fold those two decisions into the Architecture / Networking notes and retire this note.)_
+
 Current Status\
-Finalized / parts-selection complete (2026-06-27). Ready to order. Not yet physically built.
+Parts DELIVERED (as of 2026-07-01): 2× 32" monitors, monitor mount, the 4-computer/2-monitor KVM, and cables. Not yet physically built. This note is the build runbook — the wiring map, connector-direction rules, and validation steps below are what to follow at assembly time. (Parts selection was finalized 2026-06-27.)
 
 Goal\
 One keyboard, one mouse, and two new monitors at the desk, shared across four machines via a single KVM — no cable swapping. Reliable dual-monitor trading is a paramount requirement.

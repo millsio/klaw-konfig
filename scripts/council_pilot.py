@@ -3,14 +3,14 @@
 collaborate to advance the project, with periodic Claude Code (claude -p) weigh-ins.
 Terminal-streamed, debate.py-style. Bounded & attended (a controlled autonomy pilot).
 
-Flow:
-  1. Pull every note in the OPENCLAW PROJECT Mem collection (REST) -> verbatim files
-     under ~/.openclaw/council/notes/ + INDEX.md. Lossless; models read on demand.
+Flow (post Mem->local migration, 2026-07-01):
+  1. Agents self-serve project memory by reading ~/.openclaw/project-notes/ with
+     their read tool (INDEX.md is the map; read-only).
   2. N segments (~15 min each) of qwen3.6:27b (pacifico) <-> gemma4:31b (amethyst)
      collaborating, same session keys throughout (continuity), web search enabled.
   3. After each segment, a headless `claude -p --model opus` weigh-in: assesses
      progress, gives DIRECTION (injected into the next segment) and a NOTE_UPDATE
-     block (appended to a dedicated Mem note via REST). Final weigh-in emits
+     block (appended to council/discussion-log.md). Final weigh-in emits
      NEXT_STEPS for Brian.
 
 Reuses debate.py helpers. claude -p runs off the interactive OAuth (verified), no
@@ -26,20 +26,17 @@ OC = os.path.expanduser("~/.openclaw")
 sys.path.insert(0, os.path.join(OC, "scripts"))
 from debate import run_turn, stream, webrule, count_web  # noqa: E402
 
-CID = "82bba4f9-6724-4874-bbcf-1f9ab525b873"
 COUNCIL = os.path.join(OC, "council")
 NOTES = os.path.join(COUNCIL, "notes")
 LOG = os.path.join(COUNCIL, "discussion-log.md")  # cumulative weigh-in log (local; replaced the Mem note)
 CONFIG = os.path.expanduser("~/.openclaw/openclaw.json")
-API = "https://api.mem.ai/v2/notes"
 QWEN = {"agent": "main", "think": "off", "tag": "qwen3.6:27b (pacifico)"}
 GEMMA = {"agent": "gemma-amethyst", "think": "medium", "tag": "gemma4:31b (amethyst)"}
-MASTER_ID = "f3cc173b-36ee-4356-bab6-99283f17ac4f"
 BRIAN_TG = ("default", "8852367597")
 TG = None
 
 
-# ---------------- Mem REST ----------------
+# ---------------- env / secrets / local log ----------------
 def _load_env(path=os.path.expanduser("~/.openclaw/.env")):
     env = {}
     if os.path.exists(path):
@@ -85,34 +82,11 @@ def redact(t):
     return _SECRET_RE.sub("«REDACTED-SECRET»", t)
 
 
-def G(url, a):
-    import urllib.request
-    return json.loads(urllib.request.urlopen(
-        urllib.request.Request(url, headers={"Authorization": a}), timeout=30).read())
-
-
 def mem_append(note_id, block, a):  # repointed to the local discussion log (note_id/a ignored)
     os.makedirs(os.path.dirname(LOG), exist_ok=True)
     with open(LOG, "a") as f:
         f.write("\n\n" + block.strip() + "\n")
     return LOG
-
-
-def fetch_collection(a):
-    """Write every collection note verbatim to NOTES/, return (index_text, master_text)."""
-    os.makedirs(NOTES, exist_ok=True)
-    notes = G(f"{API}?collection_id={CID}&limit=100", a)["results"]
-    index, master = ["# OpenClaw Project Memory — full note index\n"], ""
-    for m in sorted(notes, key=lambda x: x["title"]):
-        n = G(f"{API}/{m['id']}", a)
-        slug = re.sub(r"[^a-z0-9]+", "-", n["title"].lower()).strip("-")[:60]
-        path = os.path.join(NOTES, f"{slug}.md")
-        open(path, "w").write(f"# {n['title']}\n\n{n['content']}\n")
-        index.append(f"- `{path}` — {n['title']} ({len(n['content'])} chars)")
-        if m["id"] == MASTER_ID:
-            master = n["content"]
-    open(os.path.join(NOTES, "INDEX.md"), "w").write("\n".join(index))
-    return "\n".join(index), master
 
 
 # ---------------- Telegram (optional) ----------------
@@ -128,8 +102,9 @@ def tg(text):
 # ---------------- weigh-in (claude -p) ----------------
 WEIGH = """You are Claude Code (Opus), the frontier advisor to a council of two local models \
 (qwen3.6:27b and gemma4:31b) that are collaborating to advance the OpenClaw project. They have \
-just finished discussion segment {idx} of {total}. They reviewed the OPENCLAW PROJECT Mem collection \
-via their own Mem tools. Judge ONLY from the running discussion log and transcript provided below — \
+just finished discussion segment {idx} of {total}. They reviewed the local project notes \
+(~/.openclaw/project-notes/) via their read-only read tool. Judge ONLY from the running discussion \
+log and transcript provided below — \
 use NO tools and read NO files (in particular, never read `.env`, `openclaw.json`, or any \
 credential/secret file).
 
@@ -145,10 +120,10 @@ ones, name specific project decisions/notes to engage, and inject tension so the
 Address it to both models. {final_note}
 
 ## NOTE_UPDATE
-A self-contained markdown block (will be appended verbatim to the Mem discussion log). Summarize \
+A self-contained markdown block (will be appended verbatim to the local discussion log). Summarize \
 segment {idx}'s substance and your direction. Start it with a `### Round {idx} — Claude Code weigh-in` heading.
 {final_section}
-=== RUNNING DISCUSSION LOG (Mem note) ===
+=== RUNNING DISCUSSION LOG (local) ===
 {note}
 
 === FULL TRANSCRIPT SO FAR ===
@@ -208,9 +183,10 @@ RULES = ("You and your partner are COLLABORATING to advance the OpenClaw project
          "objection); if you have nothing new, reply exactly PASS - do not pad with agreement or restate "
          "the plan. Keep each reply "
          "focused (~160 words). Tag factual claims: [GROUNDED] ONLY for something you verified this "
-         "session (a file you read from the local docs mirror ~/.openclaw/docs/, a Mem note you read, "
-         "or a web_search URL — PREFER the docs mirror over web search for OpenClaw facts) — memory claims are "
-         "[ASSUMED]. {web} Name the Mem note you rely on when you lean on project memory.")
+         "session (a file you read from the local docs mirror ~/.openclaw/docs/, a project note you read "
+         "from ~/.openclaw/project-notes/, or a web_search URL — PREFER the docs mirror over web search "
+         "for OpenClaw facts) — memory claims are "
+         "[ASSUMED]. {web} Name the project-note file you rely on when you lean on project memory.")
 
 
 CONVERGE_AFTER = 2  # consecutive low-value turns that trigger the deepen gear / early end
@@ -239,12 +215,12 @@ def low_value(txt, prev):
 
 DEEPEN = ("You have AGREED on the direction — STOP restating it. Use the remaining time for the harder, "
           "grounded work: turn the agreement into a CONCRETE, VERIFIED artifact — exact config keys and "
-          "values, exact commands, the ACTUAL current per-agent tool grants (name them from a Mem note "
-          "you read), an acceptance test + rollback for each step, and specific failure modes with "
+          "values, exact commands, the ACTUAL current per-agent tool grants (name them from a project "
+          "note you read), an acceptance test + rollback for each step, and specific failure modes with "
           "mitigations. New risks or 'we should also' items go in a short Deferred list — do NOT keep "
           "expanding the artifact's scope; finish the current step first. Ground each specific against the "
           "local docs mirror (~/.openclaw/docs/, preferred "
-          "for OpenClaw facts), a Mem note you read, or a web_search URL this "
+          "for OpenClaw facts), a project note you read (~/.openclaw/project-notes/), or a web_search URL this "
           "session. Each turn must add a NEW concrete detail or a NEW grounded objection — if you truly "
           "have nothing new, reply exactly PASS. Do NOT re-summarize or say you are 'ready for Brian'. {web}")
 
@@ -286,7 +262,8 @@ def segment(seg_idx, segments, parts, last, direction, master, web, seg_min, max
     else:
         intro = ("Claude Code (your frontier advisor) reviewed the discussion and gave this DIRECTION "
                  "for this segment:\n\n" + (direction or "(none)") + "\n\nConsider it; re-read any "
-                 "relevant Mem notes with your Mem tools (read-only) if useful, then continue with your partner.")
+                 "relevant project notes in ~/.openclaw/project-notes/ with your read tool (read-only) "
+                 "if useful, then continue with your partner.")
     hdr = f"\n{'#'*70}\n# SEGMENT {seg_idx}/{segments}  (~{seg_min} min, web budget {web})\n{'#'*70}\n"
     print(hdr); transcript.append(hdr); tg(f"🧠 Segment {seg_idx}/{segments} starting")
     t0, rounds = time.time(), 0
