@@ -14,6 +14,7 @@
 !scripts/council_pilot.py
 !scripts/docs_digest.py
 !scripts/digest_chunk.sh
+!docs-digest.md
 !AGENTS.md
 !CLAUDE.md
 !hooks/
